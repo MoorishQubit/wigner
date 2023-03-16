@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"path": "../EURO-HPC/SpinGlassTensors.jl"
+		},
+		{
+			"name": "OTOC_Bose_Hubbard",
+			"path": "../Bose-Hubbard Julia/OTOC_Bose_Hubbard"
+		},
+		{
+			"name": "maqumba23",
+			"path": "../maqumba23"
+		},
+		{
+			"name": "wigner",
+			"path": "."
+		},
+		{
+			"name": "dwave-thermodynamics",
+			"path": "../Thermodynamics DWAVE/dwave-thermodynamics"
+		}
+	],
+	"settings": {
+		"julia.environmentPath": "/home/zakaria/Bose-Hubbard Julia/OTOC_Bose_Hubbard"
+	}
+}
