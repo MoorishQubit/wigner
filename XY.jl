@@ -2,7 +2,7 @@ using LinearAlgebra
 using QuadGK
 using ToeplitzMatrices
 using MultiQuad
-using Plots; pythonplot()
+using Plots
 using Printf
 using LaTeXStrings
 using HCubature
@@ -25,11 +25,11 @@ function zz(l,n,T,g)
 end
 
 function xx(l,r,T,g)
-    x=det(Toeplitz([G(l,r-2,T,g) for r = 1:r],[G(l,-r,T,g) for r = 1:r]))
+    x=Toeplitz([G(l,r-2,T,g) for r = 1:r],[G(l,-r,T,g) for r = 1:r])[1]
 end
 
 function yy(l,n,T,g)
-    y=det(Toeplitz([G(l,n,T,g) for n = 1:n],[G(l,-n+2,T,g) for n=1:n]))
+    y=Toeplitz([G(l,r,T,g) for r = 1:n],[G(l,-r+2,T,g) for r=1:n])[1]
 end
 
 function concurrence(l,n,T,g)
@@ -50,17 +50,20 @@ function wigxy(t1,t2,f1,f2,l,n,T,g)
 end
 
 function negativity(l,n,T,g)
-   intg=dblquad((t,f) -> wigxy(t,t,f,f,l,n,T,g)*(sin(2*t)/pi),0,pi,0,2*pi)[1]
+   #intg=dblquad((t,f) -> wigxy(t,t,f,f,l,n,T,g)*(sin(2*t)/pi),0,pi,0,2*pi)[1]
+   intg=hcubature(x-> wigxy(x[1],x[1],x[2],x[2],l,n,T,g)*(sin(2*x[1])/pi),(0,0), (pi/2,2*pi))[1]
 end
 
+#wigxy(pi/2,pi/3,2*pi,pi,0.5,1,1e-7,1)
+#negativity(1.5,1,1e-7,1)
 
 n=1
 T=1e-7
 g=0.5
 lambda = range(0, 2, length=100)
-y = concurrence.(lambda,n,T,g)
-p=plot(lambda,y,label=L"γ")
+y = negativity.(lambda,n,T,g)
+p=plot(lambda,y)
 xlabel!(L"λ")
-ylabel!(L"C_{ρ}")
-savefig(p, "./figs/concurrence_XY.pdf")
+ylabel!(L"N")
+#savefig(p, "./figs/concurrence_XY.pdf")
 p
