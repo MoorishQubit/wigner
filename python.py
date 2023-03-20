@@ -4,7 +4,15 @@ from qutip import *
 from numpy.linalg import matrix_rank
 from toqito.state_props import negativity
 from scipy import integrate as integrate
+import itertools
 
+plt.style.use('seaborn-white')
+plt.rcParams['font.family'] = 'serif'
+plt.rcParams['font.serif'] = ['Times New Roman']
+plt.rcParams['font.weight'] = 'normal'
+plt.rcParams['mathtext.fontset'] = 'stix'
+
+marker = itertools.cycle(('o', '+', 'x','*')) 
 
 
 # def state(r):
@@ -47,28 +55,36 @@ def tilma(r,t1,f1,t2,f2):
     kernel1=1./2. * (qeye(2)-np.sqrt(3.)*(np.cos(2.*t1)*sigmaz()+np.sin(2.*t1)*(np.cos(2.*f1)*sigmax()+np.sin(2*f1)*sigmay())))
     kernel2=1./2. * (qeye(2)-np.sqrt(3.)*(np.cos(2.*t2)*sigmaz()+np.sin(2.*t2)*(np.cos(2.*f2)*sigmax()+np.sin(2*f2)*sigmay())))
     w=(state(r)*tensor(kernel1,kernel2)).tr()
-    return np.real(w)   
+    return np.abs(np.real(w))-np.real(w)   
 
+def negativity_wootters(r):
+    summ=[]
+    for x1 in [0,1]:
+        for p1 in [0,1]:
+            for x2 in [0,1]:
+                for p2 in [0,1]:
+                    summ+=[np.abs(wootters(r,x1,p1,x2,p2))]
+    return sum(summ) - 1.0
 
+def negativity_tilma(r):
+    #options={'limit':5}
+    return integrate.nquad(lambda t,f: tilma(r,t,f,t,f)*np.sin(2*t)/np.pi,[[0,np.pi/2],[0,2*np.pi]])#,opts=[options,options])[0]
 
-# options={'limit':1}
-# print(integrate.nquad(lambda t1,t2,f1,f2: tilma(1,t1,f1,t2,f2),[[0,np.pi/2],[0,np.pi/2],[0,2*np.pi],[0,2*np.pi]],opts=[options,options,options,options]))
-
-r=4
-summ=[]
-for x1 in [0,1]:
-    for p1 in [0,1]:
-        for x2 in [0,1]:
-            for p2 in [0,1]:
-                summ+=[wootters(r,x1,p1,x2,p2)]
-print(sum(summ))
+print(negativity_tilma(4))
 
 # for x in np.linspace(0,1,100):
 #     print(matrix_rank(rand_dm(N=4,density=x)))
 
+# c=[]
+# n=[]
+# for x in [1,2,3,4]:
+#     c=[concurrence(state(x))]
+#     n=[negativity(state(x))]
+#     plt.scatter(n,c,label=r'rank $%s$'%x,marker=next(marker))
+# plt.legend(fontsize=20,loc='lower right')
+# plt.xlabel(r'Negativity Wootters',fontsize=20)
+# plt.ylabel(r'Entanglement Negativity',fontsize=20)
+# plt.tick_params(axis='both', which='major', labelsize=15)
 
-# for x in rank:
-#     c+=[concurrence(state(x))]
-#     n+=[negativity(state(x))]
-# plt.scatter(n,c)
+# plt.tight_layout()
 # plt.show()
