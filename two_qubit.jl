@@ -4,12 +4,23 @@ using ProgressMeter
 
 BLAS.set_num_threads(1)
 
-function sample(steps, d, r)
+function uniform_sampler(d, r)
+    ψ = rand(HaarKet(d * r))
+    ptrace(ψ, [d, r], 2)
+end
+
+function product_sampler(d, r)
+    ψ = rand(HaarKet(isqrt(d)))
+    ϕ = rand(HaarKet(isqrt(d)))
+    proj(kron(ψ, ϕ))
+end
+
+
+function sample(steps, d, r, state_sampler)
     samples = zeros(steps, 3)
-    p = Progress(steps, "Calculating r=$(r)")
+    p = Progress(steps, "Calculating r=$(r), sampler=$(state_sampler)")
     Threads.@threads for i = 1:steps
-        ψ = rand(HaarKet(d * r))
-        ρ = ptrace(ψ, [d, r], 2)
+        ρ = state_sampler(d, r)
         w = wooters_wigner(ρ)
         samples[i, 1] = real(sum(w[w .< 0]))
         samples[i, 2] = real(negativity(ρ, [isqrt(d), isqrt(d)], 1))
@@ -23,9 +34,9 @@ end
 function main()
     steps = 1_000_000
     d = 4
-    for r = 1:d
-        samples = sample(steps, d, r)
-        npzwrite("samples_$(r).npy", samples)
+    for (r, sampling_function) in [(1, uniform_sampler), (2, uniform_sampler), (3, uniform_sampler), (4, uniform_sampler), (1, product_sampler)]
+        samples = sample(steps, d, r, sampling_function)
+        npzwrite("samples_rank=$(r)_dist=$(sampling_function).npy", samples)
     end
 end
 

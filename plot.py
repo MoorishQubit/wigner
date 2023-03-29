@@ -1,9 +1,13 @@
 import pylab as pl
+from pathlib import Path
 pl.style.use('seaborn-v0_8-white')
 pl.rcParams.update({
     "text.usetex": True,
 })
-for r in [1, 2, 3, 4]:
+
+p = Path(".")
+
+for fname in p.glob(".npy"):
     d = pl.load(f"samples_{r}.npy")
     fig, ax = pl.subplots(nrows=2, squeeze=True)
     ax[0].scatter(d[:, 0], d[:, 1], s=1)
@@ -19,5 +23,5 @@ for r in [1, 2, 3, 4]:
     #ax[1].tick_params(axis='both', which='major', labelsize=12)
 
     fig.tight_layout()
-    fig.savefig(f"figs/plot_{r}.png")
+    fig.savefig(f"figs/{fname.stem}.png")
     pl.close()
