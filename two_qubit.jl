@@ -15,16 +15,18 @@ function product_sampler(d, r)
     proj(kron(ψ, ϕ))
 end
 
+werner_sampler(d, r) = werner_state(d, rand())
 
 function sample(steps, d, r, state_sampler)
-    samples = zeros(steps, 3)
+    samples = zeros(steps, 4)
     p = Progress(steps, "Calculating r=$(r), sampler=$(state_sampler)")
     Threads.@threads for i = 1:steps
         ρ = state_sampler(d, r)
         w = wooters_wigner(ρ)
-        samples[i, 1] = real(sum(w[w .< 0]))
+        samples[i, 1] = -real(sum(w[w.<0]))
         samples[i, 2] = real(negativity(ρ, [isqrt(d), isqrt(d)], 1))
         samples[i, 3] = real(log_negativity(ρ, [isqrt(d), isqrt(d)], 1))
+        samples[i, 4] = concurrence_fix(ρ)
         next!(p)
     end
     finish!(p)
@@ -34,7 +36,14 @@ end
 function main()
     steps = 1_000_000
     d = 4
-    for (r, sampling_function) in [(1, uniform_sampler), (2, uniform_sampler), (3, uniform_sampler), (4, uniform_sampler), (1, product_sampler)]
+    for (r, sampling_function) in [
+        (1, uniform_sampler),
+        (2, uniform_sampler),
+        (3, uniform_sampler),
+        (4, uniform_sampler),
+        (1, product_sampler),
+        (1, werner_sampler),
+    ]
         samples = sample(steps, d, r, sampling_function)
         npzwrite("samples_rank=$(r)_dist=$(sampling_function).npy", samples)
     end
